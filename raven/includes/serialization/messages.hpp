@@ -579,4 +579,16 @@ struct TrackStatusMessage
     iType lastGroupId;
     iType lastObjectId;
 };
+
+/*UNSUBSCRIBE Message {
+  Type (i) = 0xA,
+  Length (i),
+  Subscribe ID (i)
+}
+*/
+struct UnsubscribeMessage :public ControlMessageBase{
+ ds::quic_var_int subscribeId;
+ UnsubscribeMessage(): ControlMessageBase(MoQtMessageType::UNSUBSCRIBE){}
+};
+
 } // namespace rvn::depracated::messages

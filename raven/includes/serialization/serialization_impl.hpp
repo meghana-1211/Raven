@@ -345,4 +345,47 @@ serialize(ds::chunk& c,
 
     return headerLen + msgLen;
 }
+
+template <typename ToEndianess = NetworkEndian>
+serialize_return_t
+serialize(ds::chunk& c,
+          const rvn::depracated::messages::ClientSetupMessage& clientSetupMessage,
+          ToEndianess = network_endian)
+{
+    std::uint64_t msgLen = 0;
+    // we need to find out length of the message we would be serializing
+    {
+        msgLen +=
+        mock_serialize<ds::quic_var_int>(clientSetupMessage.supportedVersions_.size());
+        for (const auto& version : clientSetupMessage.supportedVersions_)
+            msgLen += mock_serialize<ds::quic_var_int>(version);
+
+        msgLen +=
+        mock_serialize<ds::quic_var_int>(clientSetupMessage.parameters_.size());
+        for (const auto& parameter : clientSetupMessage.parameters_)
+        {
+            msgLen += mock_serialize<ds::quic_var_int>(
+            static_cast<std::uint32_t>(parameter.parameterType_));
+            msgLen += mock_serialize<ds::quic_var_int>(parameter.parameterValue_.size());
+            // c.append(parameter.parameterValue_.data(), parameter.parameterValue_.size());
+            msgLen += parameter.parameterValue_.size();
+        }
+    }
+
+    
+}
+template <typename ToEndianess = NetworkEndian>
+serialize_return_t
+serialize(ds::chunk& c,
+          const rvn::depracated::messages::UnsubscribeMessage& unsubscribeMessage,
+          ToEndianess = network_endian)
+{
+    std::uint64_t msgLen = 0;
+    // we need to find out length of the message we would be serializing
+    {
+        msgLen +=
+        mock_serialize<ds::quic_var_int>(unsubscribeMessage.subscribeId);
+    }
+    
+}
 } // namespace rvn::serialization::detail

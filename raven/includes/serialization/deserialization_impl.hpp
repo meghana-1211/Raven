@@ -271,4 +271,16 @@ deserialize(rvn::depracated::messages::SubscribeMessage& subscribeMessage,
 
     return deserializedBytes;
 }
+static inline deserialize_return_t
+deserialize(rvn::depracated::messages::UnsubscribeMessage& unsubscribeMessage,
+            ds::ChunkSpan& span,
+            NetworkEndian = network_endian)
+{
+    std::uint64_t deserializedBytes = 0;
+
+    std::uint64_t subscribeid;
+    deserializedBytes += deserialize<ds::quic_var_int>(subscribeid, span);
+
+    return deserializedBytes;
+}
 } // namespace rvn::serialization::detail
