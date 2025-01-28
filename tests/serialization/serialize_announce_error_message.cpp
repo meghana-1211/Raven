@@ -9,16 +9,17 @@ using namespace rvn::serialization;
 
 void test1()
 {
-    depracated::messages:: UnsubscribeMessage msg;
-    
-    msg.subscribeId_=271;
+    depracated::messages::AnnounceErrorMessage msg;
+    msg.errorCode_=12;
+    msg.trackNamespace_= "0101001010101101";
+    msg.reasonPhrase_= "1100000000010000010000000000100010000111011001010100001100100001";
     ds::chunk c;
     detail::serialize(c, msg);
 
     // clang-format off
-    // 
-    // ( quic_msg_type: 0xa )  (msglen = 2) (subscribe id)                                            
-    std::string expectedSerializationString = "[00001010] [00000010] [00000001 00001111] ";
+    //  [ 01000000 00001000 ]      00001110          00001100            
+    //                                       ( quic_msg_type: 0x8 )(msglen = 11)  (trackNamespace)  (errorCode)                 (reasonPhrase)                                                             
+    std::string expectedSerializationString = "[00000000 000001000] [00001011] [01010010 10101101] [00001100] [11000000 00010000 01000000 00001000 10000111 01100101 01000011 00100001] ";
     // clang-format on
 
     auto expectedSerialization = binary_string_to_vector(expectedSerializationString);
@@ -36,13 +37,13 @@ void test1()
     detail::deserialize(header, span);
 
     utils::ASSERT_LOG_THROW(header.messageType_ ==
-                            rvn::depracated::messages::MoQtMessageType::UNSUBSCRIBE,
+                            rvn::depracated::messages::MoQtMessageType::ANNOUNCE_ERROR,
                             "Header type mismatch\n", "Expected: ",
-                            utils::to_underlying(rvn::depracated::messages::MoQtMessageType::UNSUBSCRIBE),
+                            utils::to_underlying(rvn::depracated::messages::MoQtMessageType::ANNOUNCE_ERROR),
                             "\n", "Actual: ", utils::to_underlying(header.messageType_),
                             "\n");
 
-    depracated::messages::UnsubscribeMessage deserialized;
+    depracated::messages::AnnounceErrorMessage deserialized;
     detail::deserialize(deserialized, span);
 
     utils::ASSERT_LOG_THROW(msg == deserialized, "Deserialization failed", "\n",

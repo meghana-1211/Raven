@@ -587,8 +587,65 @@ struct TrackStatusMessage
 }
 */
 struct UnsubscribeMessage :public ControlMessageBase{
- ds::quic_var_int subscribeId;
- UnsubscribeMessage(): ControlMessageBase(MoQtMessageType::UNSUBSCRIBE){}
+
+ ds::quic_var_int subscribeId_;
+
+ UnsubscribeMessage(): ControlMessageBase(MoQtMessageType::UNSUBSCRIBE){
+
+ }
+
+  bool operator==(const UnsubscribeMessage& rhs) const
+    {
+        bool isEqual = true;
+
+        isEqual &= subscribeId_== rhs.subscribeId_;
+
+        return isEqual;
+    }
+
+ friend inline std::ostream& operator<<(std::ostream& os,const UnsubscribeMessage& msg){
+    os<< "SubscribeID: "<<msg.subscribeId_;
+    return os;
+ }
 };
+
+/*
+    ANNOUNCE_ERROR
+    {
+      Track Namespace (b),
+      Error Code (i),
+      Reason Phrase (b),
+    }
+*/
+struct AnnounceErrorMessage :public ControlMessageBase
+{
+    BinaryBufferData trackNamespace_;
+    ds::quic_var_int errorCode_;
+    BinaryBufferData reasonPhrase_;
+
+    AnnounceErrorMessage(): ControlMessageBase(MoQtMessageType::ANNOUNCE_ERROR){
+        
+    }
+
+    bool operator==(const AnnounceErrorMessage& rhs) const
+    {
+        bool isEqual = true;
+
+        isEqual &= errorCode_ == rhs.errorCode_;
+        isEqual &= trackNamespace_ == rhs.trackNamespace_;
+        isEqual &= reasonPhrase_ == rhs.reasonPhrase_;
+
+        return isEqual;
+    }
+
+    friend inline std::ostream&operator<<(std::ostream& os,const AnnounceErrorMessage& msg){
+        os<<"TrackNamespace: "<<msg.trackNamespace_;
+        os<<"ErrorCode: "<<msg.errorCode_;
+        os<<"ReasonPhrase: "<<msg.reasonPhrase_;
+        return os;
+    }
+};
+
+
 
 } // namespace rvn::depracated::messages

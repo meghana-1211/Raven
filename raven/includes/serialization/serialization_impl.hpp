@@ -347,34 +347,8 @@ serialize(ds::chunk& c,
     return headerLen + msgLen;
 }
 
-template <typename ToEndianess = NetworkEndian>
-serialize_return_t
-serialize(ds::chunk& c,
-          const rvn::depracated::messages::ClientSetupMessage& clientSetupMessage,
-          ToEndianess = network_endian)
-{
-    std::uint64_t msgLen = 0;
-    // we need to find out length of the message we would be serializing
-    {
-        msgLen +=
-        mock_serialize<ds::quic_var_int>(clientSetupMessage.supportedVersions_.size());
-        for (const auto& version : clientSetupMessage.supportedVersions_)
-            msgLen += mock_serialize<ds::quic_var_int>(version);
+//serializing UnsubscribeMessgae
 
-        msgLen +=
-        mock_serialize<ds::quic_var_int>(clientSetupMessage.parameters_.size());
-        for (const auto& parameter : clientSetupMessage.parameters_)
-        {
-            msgLen += mock_serialize<ds::quic_var_int>(
-            static_cast<std::uint32_t>(parameter.parameterType_));
-            msgLen += mock_serialize<ds::quic_var_int>(parameter.parameterValue_.size());
-            // c.append(parameter.parameterValue_.data(), parameter.parameterValue_.size());
-            msgLen += parameter.parameterValue_.size();
-        }
-    }
-
-    
-}
 template <typename ToEndianess = NetworkEndian>
 serialize_return_t
 serialize(ds::chunk& c,
@@ -387,6 +361,56 @@ serialize(ds::chunk& c,
         msgLen +=
         mock_serialize<ds::quic_var_int>(unsubscribeMessage.subscribeId);
     }
+    std::uint64_t headerLen = 0;
+
+    // Header
+    headerLen +=
+    serialize<ds::quic_var_int>(c, utils::to_underlying(depracated::messages::MoQtMessageType::UNSUBSCRIBE),
+                                ToEndianess{});
+    headerLen += serialize<ds::quic_var_int>(c, msgLen, ToEndianess{});
+
+    // Body
+    serialize<ds::quic_var_int>(c, unsubscribeMessage.subscribeId_,
+                                ToEndianess{});
+   
+    return headerLen + msgLen;
     
+}
+
+//serializing AnnounceErrorMessage
+
+template <typename ToEndianess = NetworkEndian>
+serialize_return_t
+serialize(ds::chunk& c,
+          const rvn::depracated::messages::AnnounceErrorMessage& announceErrorMessage,
+          ToEndianess = network_endian)
+{
+    std::uint64_t msgLen = 0;
+    {
+         msgLen +=
+        mock_serialize<BinaryBufferData>(announceErrorMessage.trackNamespace_);
+        msgLen +=
+        mock_serialize<ds::quic_var_int>(announceErrorMessage.errorCode_);
+       
+        msgLen +=
+        mock_serialize<BinaryBufferData>(announceErrorMessage.reasonPhrase);
+       
+    }
+
+    std::uint64_t headerLen = 0;
+
+    // Header
+    headerLen +=
+    serialize<ds::quic_var_int>(c, utils::to_underlying(depracated::messages::MoQtMessageType::ANNOUNCE_ERROR),
+                                ToEndianess{});
+    headerLen += serialize<ds::quic_var_int>(c, msgLen, ToEndianess{});
+
+    // Body
+    serialize<BinaryBufferData>(c, announceErrorMessage.trackNamespace_.size(), ToEndianess{});
+    serialize<ds::quic_var_int>(c, announceErrorMessage.errorCode_,ToEndianess{});
+    
+    serialize<BinaryBufferData>(c, announceErrorMessage.reasonPhrase_, ToEndianess{});
+
+    return headerLen + msgLen;
 }
 } // namespace rvn::serialization::detail

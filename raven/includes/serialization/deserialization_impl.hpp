@@ -296,6 +296,7 @@ deserialize(rvn::depracated::messages::SubscribeMessage& subscribeMessage,
 
     return deserializedBytes;
 }
+template <typename ConstSpan>
 static inline deserialize_return_t
 deserialize(rvn::depracated::messages::UnsubscribeMessage& unsubscribeMessage,
             ds::ChunkSpan& span,
@@ -305,7 +306,27 @@ deserialize(rvn::depracated::messages::UnsubscribeMessage& unsubscribeMessage,
 
     std::uint64_t subscribeid;
     deserializedBytes += deserialize<ds::quic_var_int>(subscribeid, span);
+    unsubscribeMessage.subscribeId_ =subscribeid;
+    return deserializedBytes;
+}
 
+template <typename ConstSpan>
+static inline deserialize_return_t
+deserialize(rvn::depracated::messages::AnnounceErrorMessage& announceErrorMessage,
+            ConstSpan& span,
+            NetworkEndian = network_endian)
+{
+    std::uint64_t deserializedBytes = 0;
+    std::uint64_t tracknamespace;
+    deserializedBytes += deserialize<ds::quic_var_int>(tracknamespace, span);
+    announceErrorMessage.trackNamespace_= static_cast<BinaryBufferData>(tracknamespace);
+    std::uint64_t errorcode;
+    deserializedBytes += deserialize<ds::quic_var_int>(errorcode, span);
+    announceErrorMessage.errorCode_=errorcode;
+    std::uint64_t reasonphrase;
+    deserializedBytes += deserialize<ds::quic_var_int>(reasonphrase, span);
+    announceErrorMessage.reasonPhrase_= static_cast<BinaryBufferData>(reasonphrase);
+    
     return deserializedBytes;
 }
 } // namespace rvn::serialization::detail
